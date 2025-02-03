@@ -1,0 +1,243 @@
+/* Container styling */
+.cart-container {
+  max-width: 900px;
+  margin: 2rem auto;
+  padding: 1.5rem;
+  background: #fafafa;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Title styling */
+.cart-title {
+  text-align: center;
+  font-size: 2.2rem;
+  color: #333;
+  margin-bottom: 1.5rem;
+  letter-spacing: 1px;
+}
+
+/* Cart Items styling */
+.cart-items {
+  margin-bottom: 2rem;
+}
+
+.cart-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ffffff;
+  padding: 1.2rem;
+  border-radius: 8px;
+  margin-bottom: 1rem;
+  transition: box-shadow 0.2s ease;
+}
+
+.cart-item:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.item-details {
+  flex: 1;
+}
+
+.item-name {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #444;
+}
+
+.item-price {
+  margin: 0.6rem 0;
+  font-size: 1rem;
+  color: #666;
+}
+
+.item-price span {
+  font-weight: bold;
+  color: #333;
+}
+
+.quantity-control {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.quantity-control label {
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.quantity-control input {
+  width: 60px;
+  padding: 0.3rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  text-align: center;
+}
+
+/* Item Actions */
+.item-actions {
+  text-align: right;
+  min-width: 150px;
+}
+
+.item-total {
+  margin: 0;
+  font-size: 1rem;
+  color: #333;
+}
+
+.item-total span {
+  font-weight: bold;
+}
+
+.remove-btn {
+  margin-top: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  background: #e74c3c;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.remove-btn:hover {
+  background: #c0392b;
+}
+
+/* Section Titles */
+.section-title {
+  font-size: 1.6rem;
+  color: #333;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 0.3rem;
+  margin-bottom: 1rem;
+}
+
+/* Discount Section */
+.discount-section {
+  background: #fff;
+  padding: 1.2rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2rem;
+}
+
+.discount-control {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+}
+
+.discount-control input {
+  flex: 1;
+  padding: 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.discount-control button {
+  padding: 0.6rem 1rem;
+  background: #27ae60;
+  border: none;
+  border-radius: 4px;
+  color: #fff;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  font-size: 1rem;
+}
+
+.discount-control button:hover {
+  background: #1e8449;
+}
+
+.error-msg {
+  margin-top: 0.6rem;
+  color: #e74c3c;
+  font-size: 0.9rem;
+}
+
+.discount-success {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #ecf9f1;
+  padding: 0.8rem;
+  border-radius: 4px;
+}
+
+.discount-success p {
+  margin: 0;
+  font-size: 1rem;
+  color: #2d8a4d;
+}
+
+.discount-success button {
+  padding: 0.3rem 0.7rem;
+  background: #fff;
+  border: 1px solid #2d8a4d;
+  border-radius: 4px;
+  color: #2d8a4d;
+  cursor: pointer;
+  transition: background 0.2s ease;
+  font-size: 0.9rem;
+}
+
+.discount-success button:hover {
+  background: #2d8a4d;
+  color: #fff;
+}
+
+/* Summary Section */
+.summary-section {
+  background: #fff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 0.8rem;
+  font-size: 1rem;
+  color: #555;
+}
+
+.total-row {
+  font-weight: bold;
+  font-size: 1.1rem;
+  border-top: 1px solid #e0e0e0;
+  padding-top: 0.8rem;
+  margin-top: 1rem;
+}
+
+/* Empty Cart Message */
+.empty-msg {
+  text-align: center;
+  padding: 2rem;
+  background: #f0f0f0;
+  border-radius: 8px;
+  font-size: 1.2rem;
+  color: #777;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+  .cart-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .item-actions {
+    width: 100%;
+    margin-top: 0.8rem;
+    text-align: left;
+  }
+}

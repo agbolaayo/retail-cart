@@ -1,29 +1,42 @@
-import { TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed } from '@angular/core/testing';
 import { AppComponent } from './app.component';
+import { RouterTestingModule } from '@angular/router/testing';
+import { By } from '@angular/platform-browser';
 
 describe('AppComponent', () => {
+  let component: AppComponent;
+  let fixture: ComponentFixture<AppComponent>;
+
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [AppComponent],
+      // Since AppComponent is standalone and imports NavComponent, we import it here.
+      imports: [AppComponent, RouterTestingModule],
     }).compileComponents();
   });
 
-  it('should create the app', () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app).toBeTruthy();
-  });
-
-  it(`should have the 'retail-cart' title`, () => {
-    const fixture = TestBed.createComponent(AppComponent);
-    const app = fixture.componentInstance;
-    expect(app.title).toEqual('retail-cart');
-  });
-
-  it('should render title', () => {
-    const fixture = TestBed.createComponent(AppComponent);
+  beforeEach(() => {
+    fixture = TestBed.createComponent(AppComponent);
+    component = fixture.componentInstance;
     fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('h1')?.textContent).toContain('Hello, retail-cart');
+  });
+
+  it('should create the app component', () => {
+    expect(component).toBeTruthy();
+  });
+
+  it(`should have as title 'retail-cart'`, () => {
+    expect(component.title).toEqual('retail-cart');
+  });
+
+  it('should render the NavComponent', () => {
+    // The NavComponent's selector is 'app-nav'
+    const navElement = fixture.debugElement.query(By.css('app-nav'));
+    expect(navElement).toBeTruthy();
+  });
+
+  it('should render a router outlet', () => {
+    // The router outlet is rendered as <router-outlet> in the DOM
+    const routerOutletElement = fixture.debugElement.query(By.css('router-outlet'));
+    expect(routerOutletElement).toBeTruthy();
   });
 });
