@@ -4,8 +4,3 @@ export interface Product {
   price: number;
   imageUrl?: string;
 }
-  
-export interface CartItem {
-  product: Product;
-  quantity: number;
-}
