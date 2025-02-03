@@ -1,27 +1,72 @@
-# RetailCart
+# Retail Cart Application (Angular 18)
 
-This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 18.0.0.
+## Overview
+This is a simple single-page application (SPA) built with Angular 18 that simulates a retail shopping cart. Users can:
+- View a list of products.
+- Add products to the cart.
+- Manage cart items (update quantity, remove items).
+- Apply discount codes to the total.
+- Retain cart values after a page refresh.
 
-## Development server
+## Features
+### 1. Product List
+- Displays a list of at least four products.
+- Each product includes a name, price, and optional image.
+- Users can add products to the cart.
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+### 2. Cart Functionality
+- Users can:
+  - Add products to the cart.
+  - View product details, quantity, and price.
+  - Update product quantity using an input field.
+  - Remove items from the cart.
+  - View subtotal for each item and the grand total.
 
-## Code scaffolding
+### 3. Discount Code
+- Users can enter a discount code in the cart.
+- Valid discount codes:
+  - `SAVE10` → 10% off the grand total.
+  - `SAVE5` → $5 off the grand total.
+- If an invalid code is entered, an error message is displayed.
 
-Run `ng generate component component-name` to generate a new component. You can also use `ng generate directive|pipe|service|class|guard|interface|enum|module`.
+### 4. Cart Persistence
+- Cart values are stored in local storage to retain data after page refresh.
 
-## Build
+### 5. Responsive UI
+- Simple and clear UI for easy navigation.
+- Minimalistic design using Angular and CSS.
 
-Run `ng build` to build the project. The build artifacts will be stored in the `dist/` directory.
+## Installation & Setup
+### Prerequisites
+Ensure you have the following installed:
+- [Node.js](https://nodejs.org/) (Latest LTS version recommended)
+- [Angular CLI](https://angular.io/cli)
 
-## Running unit tests
+### Clone the Repository
+```sh
+git clone https://github.com/agbolaayo/retail-cart.git
+cd retail-cart
+```
 
-Run `ng test` to execute the unit tests via [Karma](https://karma-runner.github.io).
+### Install Dependencies
+```sh
+npm install
+```
 
-## Running end-to-end tests
+### Run the Application
+```sh
+ng serve
+```
+- Open `http://localhost:4200/` in your browser.
 
-Run `ng e2e` to execute the end-to-end tests via a platform of your choice. To use this command, you need to first add a package that implements end-to-end testing capabilities.
+### Build for Production
+```sh
+ng build --prod
+```
 
-## Further help
 
-To get more help on the Angular CLI use `ng help` or go check out the [Angular CLI Overview and Command Reference](https://angular.io/cli) page.
+## Testing
+Run unit tests using:
+```sh
+ng test
+```
