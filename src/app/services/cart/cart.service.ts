@@ -28,7 +28,7 @@ export class CartService {
     const items = this.cartItemsSubject.getValue();
     const existingItem = items.find(item => item.product.id === product.id);
     if (existingItem) {
-      existingItem.quantity += 1;
+      // existingItem.quantity += 1;
     } else {
       items.push({ product, quantity: 1 });
     }
