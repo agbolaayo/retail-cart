@@ -1,14 +1,12 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Observable, Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { CartService } from '../../services/cart/cart.service';
-import { Observable } from 'rxjs';
+import { DiscountService } from '../../services/discount/discount.service';
 import { CartItem } from '../../models/cart.model';
-
-interface DiscountData {
-  discountCode: string;
-  discountAmount: number;
-}
+import { DiscountData } from '../../models/discount.model';
 
 @Component({
   selector: 'app-cart',
@@ -17,29 +15,49 @@ interface DiscountData {
   templateUrl: './cart.component.html',
   styleUrls: ['./cart.component.css']
 })
-export class CartComponent implements OnInit {
+export class CartComponent implements OnInit, OnDestroy {
   cartItems$: Observable<CartItem[]>;
   discountCode: string = '';
-  discountError: string = '';
   appliedDiscount: number = 0;
   subtotal: number = 0;
   grandTotal: number = 0;
 
-  // Local storage keys
-  private discountStorageKey = 'discountData';
+  // Toast error message for discount errors
+  errorToast: string = '';
+  private toastTimeout: any;
 
-  constructor(private cartService: CartService) {
+  // Local storage key for discount data
+  private discountStorageKey = 'discountData';
+  // Subject used to clean up subscriptions
+  private destroy$ = new Subject<void>();
+
+  constructor(
+    private cartService: CartService,
+    private discountService: DiscountService
+  ) {
     this.cartItems$ = this.cartService.cartItems$;
   }
 
   ngOnInit(): void {
     // Load any stored discount from local storage
     this.loadDiscount();
-    // Subscribe to cart changes so we can recalculate totals
-    this.cartItems$.subscribe(items => {
-      this.calculateSubtotal(items);
-      this.calculateGrandTotal();
-    });
+
+    // Subscribe to cart changes and recalculate totals using takeUntil for cleanup.
+    this.cartItems$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(items => {
+        this.calculateSubtotal(items);
+        this.calculateGrandTotal();
+      });
+  }
+
+  ngOnDestroy(): void {
+    // Signal completion to all subscriptions using takeUntil.
+    this.destroy$.next();
+    this.destroy$.complete();
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+    }
   }
 
   removeFromCart(productId: number): void {
@@ -55,30 +73,33 @@ export class CartComponent implements OnInit {
   }
 
   calculateSubtotal(items: CartItem[]): void {
-    this.subtotal = items.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+    this.subtotal = items.reduce(
+      (sum, item) => sum + item.product.price * item.quantity,
+      0
+    );
   }
 
   calculateGrandTotal(): void {
-    // Grand total is subtotal minus any applied discount.
-    // Ensure we do not subtract more than the subtotal.
+    // Grand total is subtotal minus any applied discount (never below zero).
     this.grandTotal = Math.max(this.subtotal - this.appliedDiscount, 0);
   }
 
   applyDiscount(): void {
-    this.discountError = '';
+    this.clearErrorToast(); // clear any existing error toast
     const currentTotal = this.subtotal;
-    if (this.discountCode.trim() === 'SAVE10') {
-      // Apply 10% discount
-      this.appliedDiscount = currentTotal * 0.10;
-    } else if (this.discountCode.trim() === 'SAVE5') {
-      // Apply a flat $5 discount
-      this.appliedDiscount = 5;
-    } else {
-      this.discountError = 'Invalid discount code';
+    // Validate the discount code using the DiscountService.
+    if (!this.discountService.isValidCode(this.discountCode)) {
+      this.showErrorToast('Invalid discount code');
       this.appliedDiscount = 0;
       localStorage.removeItem(this.discountStorageKey);
       return;
     }
+    // Calculate the discount using the DiscountService.
+    this.appliedDiscount = this.discountService.calculateDiscount(
+      currentTotal,
+      this.discountCode
+    );
+
     const discountData: DiscountData = {
       discountCode: this.discountCode.trim(),
       discountAmount: this.appliedDiscount
@@ -99,14 +120,40 @@ export class CartComponent implements OnInit {
     if (storedDiscount) {
       try {
         const discountData: DiscountData = JSON.parse(storedDiscount);
-        if (discountData.discountCode && typeof discountData.discountAmount === 'number') {
+        if (
+          discountData.discountCode &&
+          typeof discountData.discountAmount === 'number'
+        ) {
           this.discountCode = discountData.discountCode;
           this.appliedDiscount = discountData.discountAmount;
         }
       } catch (error) {
-        console.error('Error parsing discount data from local storage', error);
+        console.error(
+          'Error parsing discount data from local storage',
+          error
+        );
         localStorage.removeItem(this.discountStorageKey);
       }
+    }
+  }
+
+  // Displays an error toast that clears automatically after 3 seconds.
+  showErrorToast(message: string): void {
+    this.errorToast = message;
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+    }
+    this.toastTimeout = setTimeout(() => {
+      this.errorToast = '';
+    }, 3000);
+  }
+
+  // Clears the error toast immediately (e.g. on keydown).
+  clearErrorToast(): void {
+    this.errorToast = '';
+    if (this.toastTimeout) {
+      clearTimeout(this.toastTimeout);
+      this.toastTimeout = null;
     }
   }
 }
