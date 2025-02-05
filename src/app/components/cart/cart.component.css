@@ -6,7 +6,7 @@
   background: #fafafa;
   border-radius: 10px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  position: relative;
 }
 
 /* Title styling */
@@ -16,6 +16,20 @@
   color: #333;
   margin-bottom: 1.5rem;
   letter-spacing: 1px;
+}
+
+/* Toast Error Styling */
+.toast-error {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: #e74c3c;
+  color: #fff;
+  padding: 1rem 1.5rem;
+  border-radius: 4px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  font-size: 1rem;
 }
 
 /* Cart Items styling */
@@ -155,12 +169,6 @@
 
 .discount-control button:hover {
   background: #1e8449;
-}
-
-.error-msg {
-  margin-top: 0.6rem;
-  color: #e74c3c;
-  font-size: 0.9rem;
 }
 
 .discount-success {

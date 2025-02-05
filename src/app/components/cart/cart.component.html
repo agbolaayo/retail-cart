@@ -1,6 +1,11 @@
 <div class="cart-container">
   <h2 class="cart-title">Your Shopping Cart</h2>
 
+  <!-- Toast Notification for Errors -->
+  <div *ngIf="errorToast" class="toast-error">
+    {{ errorToast }}
+  </div>
+
   <!-- Cart Items -->
   <ng-container *ngIf="(cartItems$ | async) as cartItems; else emptyCart">
     <div class="cart-items">
@@ -36,11 +41,9 @@
           <input id="discount"
                  [(ngModel)]="discountCode"
                  type="text"
-                 placeholder="Enter discount code">
+                 placeholder="Enter discount code"
+                 (keydown)="clearErrorToast()">
           <button (click)="applyDiscount()">Apply</button>
-        </div>
-        <div *ngIf="discountError" class="error-msg">
-          {{ discountError }}
         </div>
       </ng-container>
       <ng-template #discountApplied>
