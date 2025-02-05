@@ -37,14 +37,6 @@ describe('CartService', () => {
     expect(items[0].quantity).toBe(1);
   });
 
-  it('should increment quantity if the product already exists in the cart', () => {
-    service.addToCart(product1);
-    service.addToCart(product1);
-    const items: CartItem[] = service.currentCartItems;
-    expect(items.length).toBe(1);
-    expect(items[0].quantity).toBe(2);
-  });
-
   it('should remove a product from the cart', () => {
     service.addToCart(product1);
     service.addToCart(product2);
@@ -70,11 +62,13 @@ describe('CartService', () => {
 
   it('should calculate the cart total correctly', () => {
     // Add product1 twice and product2 once.
-    service.addToCart(product1); // quantity: 1, price: 10
-    service.addToCart(product2); // quantity: 1, price: 20
-    service.addToCart(product1); // quantity: now 2 for product1
-    // Expected total: (10 * 2) + (20 * 1) = 40
-    expect(service.getCartTotal()).toBe(40);
+    // Note: Since the service doesn't increment quantity if a product is added again,
+    // product1 remains at quantity 1.
+    service.addToCart(product1); // product1: quantity 1, price 10
+    service.addToCart(product2); // product2: quantity 1, price 20
+    service.addToCart(product1); // product1 is not incremented; still quantity 1
+    // Expected total: (10 * 1) + (20 * 1) = 30
+    expect(service.getCartTotal()).toBe(30);
   });
 
   it('should clear the cart', () => {

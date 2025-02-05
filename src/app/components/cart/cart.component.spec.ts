@@ -1,33 +1,39 @@
 import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
-import { BehaviorSubject, of } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { CartComponent } from './cart.component';
 import { CartItem } from '../../models/cart.model';
 import { CartService } from '../../services/cart/cart.service';
-import { DebugElement } from '@angular/core';
-import { By } from '@angular/platform-browser';
+import { DiscountService } from '../../services/discount/discount.service';
 
-// Create a stub for CartService
+// Stub for CartService
 class CartServiceStub {
-  // We use BehaviorSubject to simulate cart items observable
+  // Use a BehaviorSubject so we can simulate observable changes.
   private cartItemsSubject = new BehaviorSubject<CartItem[]>([]);
   cartItems$ = this.cartItemsSubject.asObservable();
 
-  // Stub methods for service actions
   removeFromCart = jasmine.createSpy('removeFromCart');
   updateQuantity = jasmine.createSpy('updateQuantity');
 
-  // Helper to update cart items
+  // Helper method to set cart items.
   setCartItems(items: CartItem[]) {
     this.cartItemsSubject.next(items);
   }
+}
+
+// Stub for DiscountService
+class DiscountServiceStub {
+  // These methods will be configured per test.
+  isValidCode = jasmine.createSpy('isValidCode');
+  calculateDiscount = jasmine.createSpy('calculateDiscount');
 }
 
 describe('CartComponent', () => {
   let component: CartComponent;
   let fixture: ComponentFixture<CartComponent>;
   let cartService: CartServiceStub;
+  let discountService: DiscountServiceStub;
 
-  // Fake cart items for testing.
+  // Example cart items for testing: (10 * 2) + (20 * 1) = 40 subtotal.
   const mockCartItems: CartItem[] = [
     { product: { id: 1, price: 10, name: 'Product 1' }, quantity: 2 },
     { product: { id: 2, price: 20, name: 'Product 2' }, quantity: 1 }
@@ -38,20 +44,22 @@ describe('CartComponent', () => {
       // Since CartComponent is standalone, import it directly.
       imports: [CartComponent],
       providers: [
-        { provide: CartService, useClass: CartServiceStub }
+        { provide: CartService, useClass: CartServiceStub },
+        { provide: DiscountService, useClass: DiscountServiceStub }
       ]
     }).compileComponents();
   });
 
   beforeEach(() => {
-    // Clear localStorage before each test
+    // Clear local storage before each test.
     localStorage.clear();
 
     fixture = TestBed.createComponent(CartComponent);
     component = fixture.componentInstance;
     cartService = TestBed.inject(CartService) as unknown as CartServiceStub;
+    discountService = TestBed.inject(DiscountService) as unknown as DiscountServiceStub;
 
-    // Set initial cart items
+    // Set initial cart items.
     cartService.setCartItems(mockCartItems);
 
     // Trigger ngOnInit and initial change detection.
@@ -62,44 +70,63 @@ describe('CartComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should calculate subtotal based on cart items', fakeAsync(() => {
-    // For mockCartItems, expected subtotal = (10*2) + (20*1) = 40
-    // Wait for subscription to emit.
+  it('should calculate subtotal and grandTotal correctly', fakeAsync(() => {
+    // Wait for the subscription in ngOnInit to update totals.
     tick();
+    // Subtotal should be (10*2)+(20*1)=40.
     expect(component.subtotal).toEqual(40);
-    // Initially, no discount is applied so grandTotal should equal subtotal.
+    // With no discount applied, grandTotal equals subtotal.
     expect(component.grandTotal).toEqual(40);
   }));
 
+  it('should call cartService.removeFromCart when removeFromCart is invoked', () => {
+    component.removeFromCart(1);
+    expect(cartService.removeFromCart).toHaveBeenCalledWith(1);
+  });
+
   it('should apply a 10% discount for code SAVE10', fakeAsync(() => {
-    // Set discount code and recalc totals
+    // Configure the discount service stub for the SAVE10 code.
+    discountService.isValidCode.and.callFake((code: string) => code === 'SAVE10');
+    discountService.calculateDiscount.and.callFake((total: number, code: string) => {
+      if (code === 'SAVE10') {
+        return total * 0.1;
+      }
+      return 0;
+    });
+
     component.discountCode = 'SAVE10';
     component.applyDiscount();
-
     tick();
 
-    // For subtotal 40, 10% discount = 4.
+    // For a subtotal of 40, a 10% discount should equal 4.
     expect(component.appliedDiscount).toEqual(4);
-    // Grand total should be subtotal minus discount.
     expect(component.grandTotal).toEqual(36);
 
-    // Check that discount data was stored in localStorage.
+    // Verify discount data was stored in localStorage.
     const stored = localStorage.getItem('discountData');
     expect(stored).toBeTruthy();
     const discountData = JSON.parse(stored as string);
     expect(discountData.discountCode).toEqual('SAVE10');
     expect(discountData.discountAmount).toEqual(4);
-    // No error message should be set.
-    expect(component.discountError).toEqual('');
+
+    // No error toast should be displayed.
+    expect(component.errorToast).toEqual('');
   }));
 
   it('should apply a $5 discount for code SAVE5', fakeAsync(() => {
+    discountService.isValidCode.and.callFake((code: string) => code === 'SAVE5');
+    discountService.calculateDiscount.and.callFake((total: number, code: string) => {
+      if (code === 'SAVE5') {
+        return 5;
+      }
+      return 0;
+    });
+
     component.discountCode = 'SAVE5';
     component.applyDiscount();
-
     tick();
 
-    // For subtotal 40, flat $5 discount.
+    // For a subtotal of 40, a flat $5 discount should result in a grand total of 35.
     expect(component.appliedDiscount).toEqual(5);
     expect(component.grandTotal).toEqual(35);
 
@@ -108,31 +135,32 @@ describe('CartComponent', () => {
     const discountData = JSON.parse(stored as string);
     expect(discountData.discountCode).toEqual('SAVE5');
     expect(discountData.discountAmount).toEqual(5);
-    expect(component.discountError).toEqual('');
+    expect(component.errorToast).toEqual('');
   }));
 
   it('should handle invalid discount codes', fakeAsync(() => {
+    // For an invalid code, isValidCode returns false.
+    discountService.isValidCode.and.returnValue(false);
+
     component.discountCode = 'INVALID';
     component.applyDiscount();
-
-    tick();
-
-    // For an invalid code, no discount should be applied.
+    // Immediately after applyDiscount, the error toast is set.
+    expect(component.errorToast).toEqual('Invalid discount code');
     expect(component.appliedDiscount).toEqual(0);
-    // Grand total remains equal to subtotal.
     expect(component.grandTotal).toEqual(component.subtotal);
-    // Error message should be set.
-    expect(component.discountError).toEqual('Invalid discount code');
-
-    // Ensure no discount is stored in localStorage.
     expect(localStorage.getItem('discountData')).toBeNull();
+
+    // Advance time to clear the toast (flush the timer).
+    tick(3000);
+    expect(component.errorToast).toEqual('');
   }));
 
   it('should remove discount correctly', fakeAsync(() => {
     // First apply a discount.
+    discountService.isValidCode.and.callFake((code: string) => code === 'SAVE10');
+    discountService.calculateDiscount.and.callFake((total: number, code: string) => total * 0.1);
     component.discountCode = 'SAVE10';
     component.applyDiscount();
-
     tick();
 
     // Now remove the discount.
@@ -145,21 +173,6 @@ describe('CartComponent', () => {
     expect(localStorage.getItem('discountData')).toBeNull();
   }));
 
-  it('should call cartService.removeFromCart when removeFromCart is invoked', () => {
-    component.removeFromCart(1);
-    expect(cartService.removeFromCart).toHaveBeenCalledWith(1);
-  });
-
-  it('should update quantity when onQuantityChange is called', () => {
-    // Create a fake input event.
-    const event = {
-      target: { value: '3' }
-    } as unknown as Event;
-
-    component.onQuantityChange(2, event);
-    expect(cartService.updateQuantity).toHaveBeenCalledWith(2, 3);
-  });
-
   it('should load discount from localStorage on init', fakeAsync(() => {
     // Pre-populate localStorage with discount data.
     const discountData = {
@@ -168,19 +181,34 @@ describe('CartComponent', () => {
     };
     localStorage.setItem('discountData', JSON.stringify(discountData));
 
-    // Create new component instance to simulate initialization.
+    // Create a new component instance to simulate initialization.
     const fixture2 = TestBed.createComponent(CartComponent);
     const component2 = fixture2.componentInstance;
-
-    // Also set the same cart items.
     cartService.setCartItems(mockCartItems);
     fixture2.detectChanges();
     tick();
 
-    // Expect that discount details are loaded.
+    // Verify that discount details are loaded.
     expect(component2.discountCode).toEqual('SAVE5');
     expect(component2.appliedDiscount).toEqual(5);
-    // Grand total should reflect the discount.
     expect(component2.grandTotal).toEqual(component2.subtotal - 5);
+  }));
+
+  it('should clear error toast automatically after 3 seconds', fakeAsync(() => {
+    component.showErrorToast('Test error');
+    expect(component.errorToast).toEqual('Test error');
+    // Advance time by 3000ms.
+    tick(3000);
+    expect(component.errorToast).toEqual('');
+  }));
+
+  it('should clear error toast immediately when clearErrorToast is called', fakeAsync(() => {
+    component.showErrorToast('Test error');
+    tick(1000);
+    // Before 3 seconds, the error toast is still visible.
+    expect(component.errorToast).toEqual('Test error');
+    // Clear it immediately.
+    component.clearErrorToast();
+    expect(component.errorToast).toEqual('');
   }));
 });
